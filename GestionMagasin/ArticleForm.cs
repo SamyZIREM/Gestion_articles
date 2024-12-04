@@ -18,32 +18,78 @@ namespace GestionMagasin
 
             // Configuration du formulaire
             this.Text = article == null ? "Ajouter un Article" : "Modifier un Article";
-            this.Width = 400;
+            this.Width = 450;
             this.Height = 300;
 
+            // Marges pour l'alignement
+            int labelWidth = 100;
+            int inputWidth = 200;
+            int marginTop = 20;
+            int marginLeftLabel = 50;
+            int marginLeftInput = marginLeftLabel + labelWidth + 10;
+
             // Champ Nom
-            var nameLabel = new Label { Text = "Nom :", Left = 20, Top = 20 };
+            var nameLabel = new Label
+            {
+                Text = "Nom :",
+                Left = marginLeftLabel,
+                Top = marginTop,
+                Width = labelWidth
+            };
             this.Controls.Add(nameLabel);
 
-            nameTextBox = new TextBox { Left = 100, Top = 20, Width = 250 };
+            nameTextBox = new TextBox
+            {
+                Left = marginLeftInput,
+                Top = marginTop - 3,
+                Width = inputWidth
+            };
             this.Controls.Add(nameTextBox);
 
             // Champ Prix
-            var priceLabel = new Label { Text = "Prix :", Left = 20, Top = 60 };
+            var priceLabel = new Label
+            {
+                Text = "Prix :",
+                Left = marginLeftLabel,
+                Top = marginTop + 40,
+                Width = labelWidth
+            };
             this.Controls.Add(priceLabel);
 
-            priceTextBox = new TextBox { Left = 100, Top = 60, Width = 250 };
+            priceTextBox = new TextBox
+            {
+                Left = marginLeftInput,
+                Top = marginTop + 37,
+                Width = inputWidth
+            };
             this.Controls.Add(priceTextBox);
 
             // Champ Quantité
-            var quantityLabel = new Label { Text = "Quantité :", Left = 20, Top = 100 };
+            var quantityLabel = new Label
+            {
+                Text = "Quantité :",
+                Left = marginLeftLabel,
+                Top = marginTop + 80,
+                Width = labelWidth
+            };
             this.Controls.Add(quantityLabel);
 
-            quantityTextBox = new TextBox { Left = 100, Top = 100, Width = 250 };
+            quantityTextBox = new TextBox
+            {
+                Left = marginLeftInput,
+                Top = marginTop + 77,
+                Width = inputWidth
+            };
             this.Controls.Add(quantityTextBox);
 
             // Bouton Sauvegarder
-            saveButton = new Button { Text = "Sauvegarder", Left = 100, Top = 150, Width = 100 };
+            saveButton = new Button
+            {
+                Text = "Sauvegarder",
+                Left = (this.Width / 2) - 50, // Centré
+                Top = marginTop + 130,
+                Width = 100
+            };
             saveButton.Click += SaveButton_Click;
             this.Controls.Add(saveButton);
 

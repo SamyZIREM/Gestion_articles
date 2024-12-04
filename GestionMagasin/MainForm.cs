@@ -67,7 +67,7 @@ namespace GestionMagasin
             articlesListBox.Items.Clear();
             foreach (var article in articleManager.GetArticles())
             {
-                articlesListBox.Items.Add($"{article.Id} - {article.Name} - {article.Price}€ - {article.Quantity} unités");
+                articlesListBox.Items.Add($"{article.Name} - {article.Price}€ - {article.Quantity} unités");
             }
         }
 
