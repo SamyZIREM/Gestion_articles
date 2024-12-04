@@ -1,5 +1,3 @@
-using System;
-using System.Windows.Forms;
 using GestionMagasin.Models;
 
 namespace GestionMagasin
@@ -108,13 +106,12 @@ namespace GestionMagasin
             {
                 if (article == null)
                 {
-                    articleManager.AddArticle(new Article
-                    {
-                        Id = new Random().Next(1000, 9999),
-                        Name = nameTextBox.Text,
-                        Price = price,
-                        Quantity = quantity
-                    });
+                    articleManager.AddArticle(new Article(
+                        new Random().Next(1000, 9999),  
+                        nameTextBox.Text,           
+                        price,                       
+                        quantity                       
+                    ));
                 }
                 else
                 {
