@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Forms;
 using GestionMagasin.Models;
 
@@ -9,9 +10,9 @@ namespace GestionMagasin
         private Panier panier = new Panier();
 
         private ListBox articlesListBox, panierListBox;
-        private Button addToCartButton, removeFromCartButton, viewCartButton;
-        private Button addButton, editButton, deleteButton;  // Boutons pour gestion des articles
-        private Label articlesLabel, panierLabel;  // Labels pour les titres des sections
+        private Button addToCartButton, removeFromCartButton;
+        private Button addButton, editButton, deleteButton;
+        private Label articlesLabel, panierLabel, totalLabel;
 
         public MainForm()
         {
@@ -26,16 +27,16 @@ namespace GestionMagasin
                 Width = 400,
                 Height = 400,
                 Left = 50,
-                Top = 70 // Déplacer la liste des articles un peu plus bas pour faire de la place pour le titre
+                Top = 70
             };
             this.Controls.Add(articlesListBox);
 
             // Titre "Articles ajoutés"
             articlesLabel = new Label
             {
-                Text = "Articles ajoutés",
+                Text = "Articles ajoutés (prix à l'unité)",
                 Left = 50,
-                Top = 40, // Position du titre au-dessus de la liste des articles
+                Top = 40,
                 Width = 200
             };
             this.Controls.Add(articlesLabel);
@@ -57,7 +58,7 @@ namespace GestionMagasin
                 Width = 400,
                 Height = 400,
                 Left = 500,
-                Top = 70 // Déplacer la liste du panier un peu plus bas pour faire de la place pour le titre
+                Top = 70
             };
             this.Controls.Add(panierListBox);
 
@@ -66,7 +67,7 @@ namespace GestionMagasin
             {
                 Text = "Panier",
                 Left = 500,
-                Top = 40, // Position du titre au-dessus de la liste du panier
+                Top = 40,
                 Width = 200
             };
             this.Controls.Add(panierLabel);
@@ -82,16 +83,15 @@ namespace GestionMagasin
             removeFromCartButton.Click += RemoveFromCartButton_Click;
             this.Controls.Add(removeFromCartButton);
 
-            // Bouton Afficher le Total
-            viewCartButton = new Button
+            // Label pour afficher le total du panier
+            totalLabel = new Label
             {
-                Text = "Afficher le Total",
+                Text = "Total : 0€",
                 Left = 660,
-                Top = 470,
+                Top = 510,
                 Width = 150
             };
-            viewCartButton.Click += ViewCartButton_Click;
-            this.Controls.Add(viewCartButton);
+            this.Controls.Add(totalLabel);
 
             // Boutons pour la gestion des articles
             addButton = new Button
@@ -107,7 +107,7 @@ namespace GestionMagasin
             editButton = new Button
             {
                 Text = "Modifier Article",
-                Left = 210,  // Espace de 10px après le bouton Ajouter
+                Left = 210,
                 Top = 530,
                 Width = 150
             };
@@ -117,7 +117,7 @@ namespace GestionMagasin
             deleteButton = new Button
             {
                 Text = "Supprimer Article",
-                Left = 370,  // Espace de 10px après le bouton Modifier
+                Left = 370,
                 Top = 530,
                 Width = 150
             };
@@ -135,15 +135,42 @@ namespace GestionMagasin
             {
                 articlesListBox.Items.Add($"{article.Name} - {article.Price}€ - {article.Quantity} unités");
             }
+
+            // Actualiser le total du panier
+            UpdateTotal();
+        }
+
+
+        private void RemoveFromCartButton_Click(object sender, EventArgs e)
+        {
+            if (panierListBox.SelectedIndex >= 0)
+            {
+                // Supprimer l'article de la liste
+                panier.Articles.RemoveAt(panierListBox.SelectedIndex);
+
+                // Rafraîchir l'affichage du panier
+                RefreshCart();
+            }
         }
 
         private void RefreshCart()
         {
-            panierListBox.Items.Clear();
+            panierListBox.Items.Clear(); // Effacer les anciens éléments
+
             foreach (var item in panier.Articles)
             {
+                // Affichage de l'article et de sa quantité
                 panierListBox.Items.Add($"{item.Article.Name} x {item.Quantity} - {item.Article.Price * item.Quantity}€");
             }
+
+            // Actualiser le total du panier
+            UpdateTotal();
+        }
+
+
+        private void UpdateTotal()
+        {
+            totalLabel.Text = $"Total : {panier.CalculerTotal()}€";
         }
 
         private void AddToCartButton_Click(object sender, EventArgs e)
@@ -151,28 +178,62 @@ namespace GestionMagasin
             if (articlesListBox.SelectedIndex >= 0)
             {
                 var selectedArticle = articleManager.GetArticles()[articlesListBox.SelectedIndex];
-                var quantity = 1; // Par défaut, ajouter 1 article (ajouter un formulaire pour spécifier une quantité)
-                panier.AjouterArticle(selectedArticle, quantity);
-                LoadArticles();
-                RefreshCart();
+
+                // Créer une fenêtre pour la saisie de la quantité
+                var quantityForm = new Form
+                {
+                    Text = "Quantité à ajouter",
+                    Width = 300,
+                    Height = 200
+                };
+
+                var label = new Label
+                {
+                    Text = $"Quantité de {selectedArticle.Name} à ajouter :",
+                    Left = 10,
+                    Top = 10,
+                    Width = 250
+                };
+                quantityForm.Controls.Add(label);
+
+                // TextBox pour la saisie manuelle de la quantité
+                var quantityTextBox = new TextBox
+                {
+                    Left = 10,
+                    Top = 40,
+                    Width = 100,
+                    Text = "1" // Valeur par défaut
+                };
+                quantityForm.Controls.Add(quantityTextBox);
+
+                var okButton = new Button
+                {
+                    Text = "OK",
+                    Left = 100,
+                    Top = 100,
+                    Width = 100
+                };
+                okButton.Click += (s, args) =>
+                {
+                    int quantity;
+                    if (int.TryParse(quantityTextBox.Text, out quantity) && quantity > 0 && quantity <= selectedArticle.Quantity)
+                    {
+                        panier.AjouterArticle(selectedArticle, quantity);
+                        LoadArticles();
+                        RefreshCart();
+                        quantityForm.Close();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Quantité invalide. Veuillez saisir un nombre positif dans la plage disponible.");
+                    }
+                };
+                quantityForm.Controls.Add(okButton);
+
+                quantityForm.ShowDialog();
             }
         }
 
-        private void RemoveFromCartButton_Click(object sender, EventArgs e)
-        {
-            if (panierListBox.SelectedIndex >= 0)
-            {
-                var selectedItem = panier.Articles[panierListBox.SelectedIndex];
-                panier.RetirerArticle(selectedItem.Article, 1); // Par défaut, retirer 1 article
-                LoadArticles();
-                RefreshCart();
-            }
-        }
-
-        private void ViewCartButton_Click(object sender, EventArgs e)
-        {
-            MessageBox.Show($"Total du Panier : {panier.CalculerTotal()}€", "Total", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
 
         // Gestion des articles (ajouter, modifier, supprimer)
         private void AddButton_Click(object sender, EventArgs e)
