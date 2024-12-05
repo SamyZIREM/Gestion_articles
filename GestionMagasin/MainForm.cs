@@ -14,8 +14,22 @@ namespace GestionMagasin
         private Button addButton, editButton, deleteButton;
         private Label articlesLabel, panierLabel, totalLabel;
 
+        private Button validateOrderButton;
+        private Commande commande = new Commande();
+
         public MainForm()
         {
+
+            validateOrderButton = new Button
+            {
+                Text = "Valider la Commande",
+                Left = 750,
+                Top = 510,
+                Width = 200
+            };
+            validateOrderButton.Click += ValidateOrderButton_Click;
+            this.Controls.Add(validateOrderButton);
+
             // Configuration du formulaire
             this.Text = "Gestion des Articles et du Panier";
             this.Width = 1000;
@@ -155,15 +169,13 @@ namespace GestionMagasin
 
         private void RefreshCart()
         {
-            panierListBox.Items.Clear(); // Effacer les anciens éléments
+            panierListBox.Items.Clear();
 
-            foreach (var item in panier.Articles)
+            foreach (var (article, quantity, etat) in panier.Articles)
             {
-                // Affichage de l'article et de sa quantité
-                panierListBox.Items.Add($"{item.Article.Name} x {item.Quantity} - {item.Article.Price * item.Quantity}€");
+                panierListBox.Items.Add($"{article.Name} x {quantity} - {article.Price * quantity}€ - {etat}");
             }
 
-            // Actualiser le total du panier
             UpdateTotal();
         }
 
@@ -263,5 +275,41 @@ namespace GestionMagasin
                 LoadArticles();
             }
         }
+
+        private void ValidateOrderButton_Click(object sender, EventArgs e)
+{
+    if (panier.Articles.Count == 0)
+    {
+        MessageBox.Show("Votre panier est vide. Ajoutez des articles avant de valider la commande.");
+        return;
+    }
+
+    // Créer une nouvelle commande
+    Commande commande = new Commande();
+    commande.AjouterPanier(panier); // Associer le panier à la commande
+
+    // Générer un récapitulatif
+    string recapitulatif = $"Commande ID : {commande.IdCommande}\n";
+    recapitulatif += "Récapitulatif de votre commande :\n";
+    foreach (var (article, quantity, etat) in panier.Articles)
+{
+    recapitulatif += $"- {article.Name} x {quantity} = {article.Price * quantity}€\n";
+}
+    recapitulatif += $"Total : {panier.CalculerTotal()}€";
+
+    // Afficher le récapitulatif
+    MessageBox.Show(recapitulatif, "Commande validée");
+
+    // Mettre à jour le statut des articles
+    panier.MettreAJourStatut("Validée");
+
+    // Mettre à jour l'état de la commande
+    commande.ValiderCommande();
+
+    // Rafraîchir le panier
+    RefreshCart();
+}
+
+
     }
 }

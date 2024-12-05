@@ -2,11 +2,11 @@ namespace GestionMagasin.Models
 {
     public class Panier
     {
-        public List<(Article Article, int Quantity)> Articles { get; private set; }
+        public List<(Article Article, int Quantity, string Etat)> Articles { get; private set; }
 
         public Panier()
         {
-            Articles = new List<(Article, int)>();
+            Articles = new List<(Article, int, string)>();
         }
 
         public void AjouterArticle(Article article, int quantity)
@@ -16,46 +16,24 @@ namespace GestionMagasin.Models
                 var item = Articles.FirstOrDefault(a => a.Article.Id == article.Id);
                 if (item.Article != null)
                 {
-                    item.Quantity += quantity;
+                    // Si l'article existe déjà, on met à jour sa quantité
+                    Articles.Remove(item);
+                    Articles.Add((article, item.Quantity + quantity, "Commande invalide"));
                 }
                 else
                 {
-                    Articles.Add((article, quantity));
+                    // Sinon on l'ajoute avec le statut "Commande invalide"
+                    Articles.Add((article, quantity, "Commande invalide"));
                 }
                 article.Retirer(quantity);
             }
         }
 
-        public void RetirerArticle(Article article, int quantity)
+        public void MettreAJourStatut(string nouveauStatut)
         {
-            // Chercher l'élément du panier
-            var panierItem = Articles.FirstOrDefault(p => p.Article.Id == article.Id);
-
-            // Vérifier si panierItem est une valeur par défaut (l'élément n'a pas été trouvé)
-            if (!panierItem.Equals(default((Article Article, int Quantity))))
+            for (int i = 0; i < Articles.Count; i++)
             {
-                // Vérifier si la quantité à retirer est valide
-                if (quantity <= panierItem.Quantity)
-                {
-                    panierItem.Quantity -= quantity;
-
-                    // Si la quantité devient 0 ou moins, retirer l'article du panier
-                    if (panierItem.Quantity <= 0)
-                    {
-                        Articles.Remove(panierItem);
-                    }
-
-                    // Ajouter la quantité retirée à l'article (dans le stock)
-                    article.Quantity += quantity;
-                }
-                else
-                {
-                    MessageBox.Show("La quantité à retirer est supérieure à la quantité présente dans le panier.");
-                }
-            }
-            else
-            {
-                MessageBox.Show("Cet article n'est pas dans le panier.");
+                Articles[i] = (Articles[i].Article, Articles[i].Quantity, nouveauStatut);
             }
         }
 
