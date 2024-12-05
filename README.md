@@ -8,3 +8,6 @@
 
      ![alt text](image-1.png)
 
+- Interface à l'étape de l'US 6 :
+
+     ![alt text](image-2.png)
