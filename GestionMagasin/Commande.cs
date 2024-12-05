@@ -38,7 +38,15 @@ namespace GestionMagasin.Models
 
         public void AnnulerCommande()
         {
-            EtatCommande = EtatCommande.Annulee;
+            // Vérifier si la commande est valide avant de l'annuler
+            if (EtatCommande == EtatCommande.Validee)
+            {
+                EtatCommande = EtatCommande.Annulee;
+            }
+            else
+            {
+                MessageBox.Show("La commande ne peut pas être annulée car elle n'est pas validée.");
+            }
         }
 
         public decimal CalculerTotal()

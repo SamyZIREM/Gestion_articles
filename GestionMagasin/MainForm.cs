@@ -17,6 +17,8 @@ namespace GestionMagasin
         private Button validateOrderButton;
         private Commande commande = new Commande();
 
+        private Button cancelOrderButton;
+
         public MainForm()
         {
 
@@ -30,10 +32,21 @@ namespace GestionMagasin
             validateOrderButton.Click += ValidateOrderButton_Click;
             this.Controls.Add(validateOrderButton);
 
+            // Ajoutez le bouton "Annuler la Commande"
+            cancelOrderButton = new Button
+            {
+                Text = "Annuler la Commande",
+                Left = 750,
+                Top = 550,
+                Width = 200
+            };
+            cancelOrderButton.Click += CancelOrderButton_Click;
+            this.Controls.Add(cancelOrderButton);
+
             // Configuration du formulaire
             this.Text = "Gestion des Articles et du Panier";
             this.Width = 1000;
-            this.Height = 600;
+            this.Height = 700;
 
             // Liste des articles
             articlesListBox = new ListBox
@@ -58,13 +71,14 @@ namespace GestionMagasin
             // Bouton Ajouter au Panier
             addToCartButton = new Button
             {
-                Text = "Ajouter au Panier",
-                Left = 50,
-                Top = 470,
+                Text = "Ajouter au Panier ->",
+                Left = 400,
+                Top = 300,
                 Width = 150
             };
             addToCartButton.Click += AddToCartButton_Click;
             this.Controls.Add(addToCartButton);
+            addToCartButton.BringToFront();
 
             // Liste du panier
             panierListBox = new ListBox
@@ -79,7 +93,7 @@ namespace GestionMagasin
             // Titre "Panier"
             panierLabel = new Label
             {
-                Text = "Panier",
+                Text = "Panier (prix total)",
                 Left = 500,
                 Top = 40,
                 Width = 200
@@ -90,7 +104,7 @@ namespace GestionMagasin
             removeFromCartButton = new Button
             {
                 Text = "Retirer du Panier",
-                Left = 500,
+                Left = 600,
                 Top = 470,
                 Width = 150
             };
@@ -112,7 +126,7 @@ namespace GestionMagasin
             {
                 Text = "Ajouter Article",
                 Left = 50,
-                Top = 530,
+                Top = 500,
                 Width = 150
             };
             addButton.Click += AddButton_Click;
@@ -122,7 +136,7 @@ namespace GestionMagasin
             {
                 Text = "Modifier Article",
                 Left = 210,
-                Top = 530,
+                Top = 500,
                 Width = 150
             };
             editButton.Click += EditButton_Click;
@@ -132,7 +146,7 @@ namespace GestionMagasin
             {
                 Text = "Supprimer Article",
                 Left = 370,
-                Top = 530,
+                Top = 500,
                 Width = 150
             };
             deleteButton.Click += DeleteButton_Click;
@@ -277,38 +291,67 @@ namespace GestionMagasin
         }
 
         private void ValidateOrderButton_Click(object sender, EventArgs e)
-{
-    if (panier.Articles.Count == 0)
-    {
-        MessageBox.Show("Votre panier est vide. Ajoutez des articles avant de valider la commande.");
-        return;
-    }
+        {
+            if (panier.Articles.Count == 0)
+            {
+                MessageBox.Show("Votre panier est vide. Ajoutez des articles avant de valider la commande.");
+                return;
+            }
 
-    // Créer une nouvelle commande
-    Commande commande = new Commande();
-    commande.AjouterPanier(panier); // Associer le panier à la commande
+            // Créer une nouvelle commande
+            commande = new Commande();
+            commande.AjouterPanier(panier); // Associer le panier à la commande
 
-    // Générer un récapitulatif
-    string recapitulatif = $"Commande ID : {commande.IdCommande}\n";
-    recapitulatif += "Récapitulatif de votre commande :\n";
-    foreach (var (article, quantity, etat) in panier.Articles)
-{
-    recapitulatif += $"- {article.Name} x {quantity} = {article.Price * quantity}€\n";
-}
-    recapitulatif += $"Total : {panier.CalculerTotal()}€";
+            // Valider la commande
+            commande.ValiderCommande(); // Assurez-vous que l'état est bien mis à jour
 
-    // Afficher le récapitulatif
-    MessageBox.Show(recapitulatif, "Commande validée");
+            // Générer un récapitulatif
+            string recapitulatif = $"Commande ID : {commande.IdCommande}\n";
+            recapitulatif += "Récapitulatif de votre commande :\n";
+            foreach (var (article, quantity, etat) in panier.Articles)
+            {
+                recapitulatif += $"- {article.Name} x {quantity} = {article.Price * quantity}€\n";
+            }
+            recapitulatif += $"Total : {panier.CalculerTotal()}€";
 
-    // Mettre à jour le statut des articles
-    panier.MettreAJourStatut("Validée");
+            // Afficher le récapitulatif
+            MessageBox.Show(recapitulatif, "Commande validée");
 
-    // Mettre à jour l'état de la commande
-    commande.ValiderCommande();
+            // Mettre à jour le statut des articles
+            panier.MettreAJourStatut("Validée");
 
-    // Rafraîchir le panier
-    RefreshCart();
-}
+            // Rafraîchir le panier
+            RefreshCart();
+        }
+
+        private void CancelOrderButton_Click(object sender, EventArgs e)
+        {
+            if (commande.EtatCommande == EtatCommande.Validee)
+            {
+                // Confirmer l'annulation
+                var confirmation = MessageBox.Show("Êtes-vous sûr de vouloir annuler la commande ?", "Annulation de commande", MessageBoxButtons.YesNo);
+                if (confirmation == DialogResult.Yes)
+                {
+                    commande.AnnulerCommande(); // Annuler la commande
+                    panier.MettreAJourStatut("Annulée"); // Mettre à jour le statut des articles du panier
+
+                    // Rafraîchir l'affichage du panier
+                    RefreshCart();
+
+                    MessageBox.Show("La commande a été annulée.");
+                }
+            }
+            else if (commande.EtatCommande == EtatCommande.Annulee)
+            {
+                MessageBox.Show("Cette commande a déjà été annulée.");
+            }
+            else
+            {
+                MessageBox.Show("La commande doit être validée avant d'être annulée.");
+            }
+        }
+
+
 
 
     }
