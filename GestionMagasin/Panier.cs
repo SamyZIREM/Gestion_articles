@@ -3,6 +3,7 @@ namespace GestionMagasin.Models
     public class Panier
     {
         public List<(Article Article, int Quantity, string Etat)> Articles { get; private set; }
+        private decimal Promotion { get; set; }
 
         public Panier()
         {
@@ -39,7 +40,21 @@ namespace GestionMagasin.Models
 
         public decimal CalculerTotal()
         {
-            return Articles.Sum(a => a.Article.Price * a.Quantity);
+            var total = Articles.Sum(a => a.Article.Price * a.Quantity);
+            return Math.Max(total - Promotion, 0);
+        }
+
+        public void AppliquerPromotion(decimal montantFixe)
+        {
+            var total = Articles.Sum(a => a.Article.Price * a.Quantity);
+            if (montantFixe > 0 && montantFixe <= total)
+            {
+                Promotion = montantFixe;
+            }
+            else
+            {
+                throw new ArgumentException("Montant de promotion invalide.");
+            }
         }
     }
 }

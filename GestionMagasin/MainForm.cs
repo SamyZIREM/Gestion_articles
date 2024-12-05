@@ -19,14 +19,44 @@ namespace GestionMagasin
 
         private Button cancelOrderButton;
 
+        private TextBox promoCodeTextBox;
+        private Button applyPromoButton;
+
+        private Promotion promotion;
+
         public MainForm()
         {
+
+            // Gestion de promo 
+            promotion = new Promotion();
+
+            // Champ code promotion
+            promoCodeTextBox = new TextBox
+            {
+                PlaceholderText = "Code promotion",
+                Left = 750,
+                Top = 510,
+                Width = 100
+            };
+            this.Controls.Add(promoCodeTextBox);
+
+
+            // Bouton pour appliquer la promotion
+            applyPromoButton = new Button
+            {
+                Text = "Appliquer Promo",
+                Left = 850,
+                Top = 510,
+                Width = 130
+            };
+            applyPromoButton.Click += ApplyPromoButton_Click;
+            this.Controls.Add(applyPromoButton);
 
             validateOrderButton = new Button
             {
                 Text = "Valider la Commande",
                 Left = 750,
-                Top = 510,
+                Top = 610,
                 Width = 200
             };
             validateOrderButton.Click += ValidateOrderButton_Click;
@@ -37,7 +67,7 @@ namespace GestionMagasin
             {
                 Text = "Annuler la Commande",
                 Left = 750,
-                Top = 550,
+                Top = 650,
                 Width = 200
             };
             cancelOrderButton.Click += CancelOrderButton_Click;
@@ -46,7 +76,7 @@ namespace GestionMagasin
             // Configuration du formulaire
             this.Text = "Gestion des Articles et du Panier";
             this.Width = 1000;
-            this.Height = 700;
+            this.Height = 800;
 
             // Liste des articles
             articlesListBox = new ListBox
@@ -352,7 +382,39 @@ namespace GestionMagasin
         }
 
 
+        private void ApplyPromoButton_Click(object sender, EventArgs e)
+        {
+            string codePromo = promoCodeTextBox.Text.Trim();
 
+            if (!string.IsNullOrEmpty(codePromo))
+            {
+                decimal montantFixe = promotion.GetPromotionValue(codePromo);
+
+                if (montantFixe > 0)
+                {
+                    try
+                    {
+                        panier.AppliquerPromotion(montantFixe);
+                        RefreshCart(); // MAJ le prix total
+                        MessageBox.Show($"Promotion de {montantFixe}€ appliquée avec succès !", "Succès");
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        MessageBox.Show(ex.Message, "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Code promo invalide. Veuillez réessayer.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Veuillez entrer un code promo.", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
 
     }
 }
+
+

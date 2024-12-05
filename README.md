@@ -11,3 +11,7 @@
 - Interface à l'étape de l'US 6 :
 
      ![alt text](image-2.png)
+
+- Interface à l'étape de l'US 7  de promo :
+
+     ![alt text](image-3.png)
